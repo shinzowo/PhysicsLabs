@@ -1,8 +1,3 @@
-# Decompiled with PyLingual (https://pylingual.io)
-# Internal filename: MainWindow.py
-# Bytecode version: 3.9.0beta5 (3425)
-# Source timestamp: 1970-01-01 00:00:00 UTC (0)
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
@@ -10,12 +5,12 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName('MainWindow')
         MainWindow.setEnabled(True)
-        MainWindow.resize(538, 600)
+        MainWindow.setFixedSize(538, 600)
         MainWindow.setAutoFillBackground(False)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName('centralwidget')
         self.titulButton = QtWidgets.QPushButton(parent=self.centralwidget)
-        self.titulButton.setGeometry(QtCore.QRect(120, 330, 300, 60))
+        self.titulButton.setGeometry(QtCore.QRect(120, 260, 300, 60))
         font = QtGui.QFont()
         font.setFamily('Arial')
         font.setPointSize(12)
@@ -48,14 +43,10 @@ class Ui_MainWindow(object):
         font.setBold(True)
         self.table2Button.setFont(font)
         self.table2Button.setObjectName('table2Button')
-        self.table3Button = QtWidgets.QPushButton(parent=self.centralwidget)
-        self.table3Button.setGeometry(QtCore.QRect(200, 260, 140, 60))
         font = QtGui.QFont()
         font.setFamily('Arial')
         font.setPointSize(12)
         font.setBold(True)
-        self.table3Button.setFont(font)
-        self.table3Button.setObjectName('table3Button')
         self.otchotButton = QtWidgets.QPushButton(parent=self.centralwidget)
         self.otchotButton.setGeometry(QtCore.QRect(120, 490, 300, 60))
         font = QtGui.QFont()
@@ -90,12 +81,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate('MainWindow', 'Лабораторная работа № 3-01'))
+        MainWindow.setWindowTitle(_translate('MainWindow', 'Лабораторная работа № 1-03'))
         self.titulButton.setText(_translate('MainWindow', 'Редактирование титульного листа'))
-        self.label.setText(_translate('MainWindow', 'Лабораторная работа № 3-01'))
+        self.label.setText(_translate('MainWindow', 'Лабораторная работа № 1-03'))
         self.metodButton.setText(_translate('MainWindow', 'Методические указания'))
         self.table2Button.setText(_translate('MainWindow', 'Таблица 2'))
-        self.table3Button.setText(_translate('MainWindow', 'Таблица 3'))
         self.otchotButton.setText(_translate('MainWindow', 'Сохранить отчёт'))
         self.label_2.setText(_translate('MainWindow', '<html><head/><body><p align="center"><span style=" font-size:10pt;">ВНИМАНИЕ!</span></p><p align="center"><span style=" font-size:10pt;">Не забудьте сохранить внесённые данные перед</span></p><p align="center"><span style=" font-size:10pt;"> сохранением отчёта!</span></p></body></html>'))
         self.table1Button.setText(_translate('MainWindow', 'Таблица 1'))
