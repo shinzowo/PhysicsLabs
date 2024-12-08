@@ -285,7 +285,7 @@ class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
 
     def _initModel(self):
         data = initTable2()
-        header = ['m, кг', 'M/m, кг', 't1, с', 't2, с', 't3, с', 't4, с', 't сред.', 'Δt']
+        header = ['m, кг', 'M, кг', 'M/m, кг', 't1, с', 't2, с', 't3, с', 't4, с', 't ср., с', 'Δt, с']
         vheader = None
         customID = 2
         self.rowC = int(len(data))

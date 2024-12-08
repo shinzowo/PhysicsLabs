@@ -12,7 +12,7 @@ class Ui_Table_2(object):
         self.tableView2.horizontalHeader().setCascadingSectionResizes(False)
         self.tableView2.horizontalHeader().setDefaultSectionSize(40)
         self.tableView2.horizontalHeader().setSortIndicatorShown(False)
-        self.tableView2.verticalHeader().setDefaultSectionSize(40)
+        self.tableView2.verticalHeader().setDefaultSectionSize(20)
         self.saveButton = QtWidgets.QPushButton(parent=Table_2)
         self.saveButton.setGeometry(QtCore.QRect(500, 340, 100, 50))
         self.saveButton.setObjectName('saveButton')
