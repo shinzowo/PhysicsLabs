@@ -85,9 +85,6 @@ class Ui_MainWindow(object):
         self.table1Button.setFont(font)
         self.table1Button.setObjectName('table1Button')
         MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
-        self.statusbar.setObjectName('statusbar')
-        MainWindow.setStatusBar(self.statusbar)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
