@@ -1,8 +1,3 @@
-# Decompiled with PyLingual (https://pylingual.io)
-# Internal filename: Table_1.py
-# Bytecode version: 3.9.0beta5 (3425)
-# Source timestamp: 1970-01-01 00:00:00 UTC (0)
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 class Ui_Table_1(object):

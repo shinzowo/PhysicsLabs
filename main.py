@@ -1,8 +1,3 @@
-# Decompiled with PyLingual (https://pylingual.io)
-# Internal filename: laba301.py
-# Bytecode version: 3.9.0beta5 (3425)
-# Source timestamp: 1970-01-01 00:00:00 UTC (0)
-
 import sys
 import os
 import json
@@ -15,11 +10,10 @@ from PyQt6.QtPdfWidgets import QPdfView
 import PyPDF2
 from PIL import Image
 from os import listdir, path
-import Titul
 import MainWindow
+import Titul
 import Table_1
 import Table_2
-import Table_3
 
 def raschotFunction(index, data, customID, old_value, rowC):
     if customID == 1 and index.column() < 2:
@@ -206,7 +200,7 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
 
     def _initModel(self):
         data = initTable1()
-        header = ['a, см', 'b, см', 'f, см', 'f сред., см']
+        header = ['h, м', 't1, с', 't2, с', 't3, c',  't4, c', 'Δt, с', 'Δh, м', 'm, кг', 'm0, кг']
         vheader = None
         customID = 1
         self.rowC = int(len(data))
@@ -291,7 +285,7 @@ class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
 
     def _initModel(self):
         data = initTable2()
-        header = ['L, см', 'a1, см', 'a2, см', 'l, см', 'f, см', 'f сред., см']
+        header = ['m, кг', 'M/m, кг', 't1, с', 't2, с', 't3, с', 't4, с', 't сред.', 'Δt']
         vheader = None
         customID = 2
         self.rowC = int(len(data))
@@ -335,91 +329,6 @@ class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
         self.screen()
         self.close()
 
-def initTable3():
-    if os.path.exists('./data/table3.json'):
-        with open('./data/table3.json', 'r', encoding='utf-8') as read_file:
-            data = json.load(read_file)
-            _data = []
-            for row in data:
-                _col = []
-                for col in row:
-                    _col.append(row[col])
-                _data.append(_col)
-            return _data
-    else:
-        return [['', '', '', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '', '']]
-
-def saveTable3(data, file='./data/table3.json'):
-    with open(file, 'w', encoding='utf-8') as write_file:
-        json.dump(data, write_file, ensure_ascii=False)
-
-class Table3(QtWidgets.QMainWindow, Table_3.Ui_Table_3):
-
-    def __init__(self):
-        super().__init__()
-        self._initModel()
-        self.setupUi(self)
-        self._initGui()
-
-    def _initGui(self):
-        self.tableView3.setModel(self.model)
-        header = self.tableView3.horizontalHeader()
-        vheader = self.tableView3.verticalHeader()
-        header.ResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setStretchLastSection(True)
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tableView3.setHorizontalHeader(header)
-        self.tableView3.setVerticalHeader(vheader)
-        self.saveButton.clicked.connect(self.screen)
-        self.addRowButton.clicked.connect(self.addRow)
-        self.delRowButton.clicked.connect(self.delRow)
-
-    def _initModel(self):
-        data = initTable3()
-        header = ['X1, см', 'X2, см', 'Xp, см', 'a, см', 'b, см', 'f, см', 'f сред., см']
-        vheader = None
-        customID = 3
-        self.rowC = int(len(data))
-        self.model = TableModel(data, header, customID, vheader)
-
-    def addRow(self):
-        if int(self.rowC) < 6:
-            self.rowC = int(self.rowC) + 1
-            self.model.layoutAboutToBeChanged.emit()
-            self.model.insertRows(self.model.rowCount(), count=1)
-            self.model.layoutChanged.emit()
-        return None
-
-    def delRow(self):
-        self.model.layoutAboutToBeChanged.emit()
-        _index = self.tableView3.selectedIndexes()
-        if not _index:
-            return True
-        rows = sorted(set((index.row() for index in _index)))
-        self.model.removeRow(row=rows[0])
-        self.model.layoutChanged.emit()
-        self.rowC = int(self.rowC) - 1
-
-    def saveModel(self):
-        if not self.model._data:
-            return
-        _data = []
-        for _row in self.model._data:
-            _dict_task = {}
-            for i in range(len(self.model._header)):
-                _dict_task[self.model._header[i]] = _row[i]
-            _data.append(_dict_task)
-        saveTable3(_data, file='./data/table3.json')
-
-    def screen(self):
-        self.saveModel()
-        imageTabel = self.tableView3.grab(self.tableView3.rect())
-        imageTabel.save('./images/imageTabel3.png')
-
-    def closeEvent(self, event):
-        self.screen()
-        self.close()
-
 class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
 
     def __init__(self):
@@ -454,7 +363,6 @@ class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
         self.close()
 
 class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -464,15 +372,12 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         self.table3 = None
         self.titul = None
         self.view = None
-
     def _initGui(self):
         self.metodButton.clicked.connect(self.openMetod)
         self.table1Button.clicked.connect(self.openTable1)
         self.table2Button.clicked.connect(self.openTable2)
-        self.table3Button.clicked.connect(self.openTable3)
         self.titulButton.clicked.connect(self.openTitul)
         self.otchotButton.clicked.connect(self.saveOtchot)
-
     def openMetod(self):
         file_path = './images/pdfFiles/2_teor.pdf'
         self.document = QPdfDocument(None)
@@ -482,13 +387,11 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         self.view.setPageMode(QPdfView.PageMode.MultiPage)
         self.view.setDocument(self.document)
         self.view.show()
-
     def openTable1(self):
         if self.table1 and self.table1.isVisible():
             self.table1.saveModel()
         self.table1 = Table1()
         self.table1.show()
-
     def openTable2(self):
         if self.table2 and self.table2.isVisible():
             self.table2.saveModel()
@@ -498,13 +401,11 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
     def openTable3(self):
         if self.table3 and self.table3.isVisible():
             self.table3.saveModel()
-        self.table3 = Table3()
+        #self.table3 = Table3()
         self.table3.show()
-
     def openTitul(self):
         self.titul = TitulWindow()
         self.titul.show()
-
     def mergePng(self, im2, im3, resample=Image.BICUBIC, resize_big_image=True):
         _im2 = im2.resize((595, im2.height), resample=resample)
         _im3 = im3.resize((595, im3.height), resample=resample)
@@ -514,16 +415,16 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         return dst
 
     def saveOtchot(self):
-        if path.isfile('./images/imageTabel1.png') and path.isfile('./images/imageTabel2.png') and path.isfile('./images/imageTabel3.png'):
+        if path.isfile('./images/imageTabel1.png') and path.isfile('./images/imageTabel2.png'):
             im2 = Image.open('./images/imageTabel2.png')
-            im3 = Image.open('./images/imageTabel3.png')
+
             Table2Header = Image.open('./images/Table2Header.png')
-            Table3Header = Image.open('./images/Table3Header.png')
+
             self.mergePng(Table2Header, im2, resize_big_image=True).save('./images/newIm.png')
             newIm = Image.open('./images/newIm.png')
-            self.mergePng(newIm, Table3Header, resize_big_image=True).save('./images/newIm.png')
+
             newIm = Image.open('./images/newIm.png')
-            self.mergePng(newIm, im3, resize_big_image=True).save('./images/newIm.png')
+
             newIm = Image.open('./images/newIm.png')
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             a4im.paste(newIm, newIm.getbbox())
@@ -541,7 +442,6 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             merger.append('./images/pdfFiles/' + file)
         with open(path.abspath('./otchot/otchot.pdf'), 'wb') as append_all_pdfs:
             merger.write(append_all_pdfs)
-
     def closeEvent(self, event):
         if self.table1 and self.table1.isVisible():
             self.table1.closeEvent(None)
@@ -554,7 +454,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         if self.view and self.view.isVisible():
             self.view.close()
         self.close()
-if __name__ == '__main__':
+if __name__=="__main__":
     app = QtWidgets.QApplication(sys.argv)
     main = MainWindow()
     main.show()
