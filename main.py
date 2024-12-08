@@ -200,7 +200,7 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
 
     def _initModel(self):
         data = initTable1()
-        header = ['h, м', 't1, с', 't2, с', 't3, c',  't4, c', 'Δt, с', 'Δh, м', 'm, кг', 'm0, кг']
+        header = ['h, м', 't1, с', 't2, с', 't3, c',  't4, c', 't ср, c', 'Δt, с', 'Δh, м', 'm, кг', 'm0, кг']
         vheader = None
         customID = 1
         self.rowC = int(len(data))
