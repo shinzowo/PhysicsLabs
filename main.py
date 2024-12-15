@@ -16,80 +16,67 @@ import Table_1
 import Table_2
 
 def raschotFunction(index, data, customID, old_value, rowC):
-    if customID == 1 and index.column() < 2:
+    if customID == 1:
+        # Non-input columns
+        if index.column() in (5, 6):
+            return False 
+        
+        # Values that common for all columns
+        if index.row() != 0 and index.column() in (8, 9):
+            return False 
+        
         try:
-            a = float(data[index.row()][0])
-            b = float(data[index.row()][1])
-            if not a + b:
-                data[index.row()][2] = 'Деление на ноль'
-            else:
-                f = a * b / (a + b)
-                data[index.row()][2] = f
+            h = data[index.row()][0]
+            t = tuple(data[index.row()][i] for i in (1,2,3,4))
+            if '' not in t:
+                t_av = sum(t)/4
+                data[index.row()][5] = t_av
+                delta_t_i_2 = ((t_av - x)**2 for x in t)
+                sigma_t = (sum(delta_t_i_2) / 12)**0.5
+                dov_int = 3.182 * sigma_t
+                err_1 = 0.95 * 0.005
+                delta_t = (dov_int**2 + err_1**2)**0.5
+                data[index.row()][6] = (delta_t // 0.00001) * 0.00001
+
         except ValueError:
-            data[index.row()][2] = ''
+            # data[index.row()][2] = ''
             return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][2] != '' and data[i][2] != 'Деление на ноль':
-                n += 1
-                s += data[i][2]
-        data[0][3] = s / n
-    elif customID == 2 and index.column() < 3:
-        if index.column() == 1 or index.column() == 2:
-            try:
-                a1 = float(data[index.row()][1])
-                a2 = float(data[index.row()][2])
-                data[index.row()][3] = a2 - a1
-            except ValueError:
-                data[index.row()][3] = ''
+
+    elif customID == 2:
+        # Non-input columns
+        if index.column() in (2, 7, 8):
+            return False 
+        
+        # Values that common for all columns
+        if index.row() != 0 and index.column() in (1, ):
+            return False 
+        
+        try:
+            m = data[index.row()][0]
+            M = data[0][1]
+            if m == 0:
                 return False
-        try:
-            l = float(data[index.row()][3])
-            L = float(data[index.row()][0])
-            if int(L) == 0:
-                data[index.row()][4] = 'Деление на ноль'
-            else:
-                f = (L * L - l * l) / (4 * L)
-                data[index.row()][4] = f
+            
+            if '' not in (m, M):
+                data[index.row()][2] = M/m
+            t = tuple(data[index.row()][i] for i in (3,4,5,6))
+            if '' not in t:
+                t_av = sum(t)/4
+                data[index.row()][7] = t_av
+                delta_t_i_2 = ((t_av - x)**2 for x in t)
+                sigma_t = (sum(delta_t_i_2) / 12)**0.5
+                dov_int = 3.182 * sigma_t
+                err_1 = 0.95 * 0.005
+                delta_t = (dov_int**2 + err_1**2)**0.5
+                data[index.row()][8] = (delta_t // 0.00001) * 0.00001
+
         except ValueError:
-            data[index.row()][4] = ''
+            # data[index.row()][2] = ''
             return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][4] != '' and data[i][4] != 'Деление на ноль':
-                n += 1
-                s += data[i][4]
-        data[0][5] = s / n
-    elif customID == 3 and index.column() < 3:
-        try:
-            x1 = float(data[index.row()][0])
-            x2 = float(data[index.row()][1])
-            xp = float(data[index.row()][2])
-            a = x2 - xp
-            b = x1 - xp
-            if a == b:
-                data[index.row()][5] = 'Деление на ноль'
-                return False
-            data[index.row()][3] = a
-            data[index.row()][4] = b
-            f = a * b / (b - a)
-            data[index.row()][5] = f
-        except ValueError:
-            for i in range(3, 5):
-                data[index.row()][i] = ''
-            return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][5] != '' and data[i][5] != 'Деление на ноль':
-                n += 1
-                s += data[i][5]
-        data[0][6] = s / n
+    
     else:
         data[index.row()][index.column()] = old_value
-    return False
+    return True
 
 class TableModel(QtCore.QAbstractTableModel):
 
@@ -120,7 +107,8 @@ class TableModel(QtCore.QAbstractTableModel):
             old_value = self._data[index.row()][index.column()]
             try:
                 self._data[index.row()][index.column()] = float(value)
-                raschotFunction(index, self._data, self._customID, old_value, self.rowCount())
+                if not raschotFunction(index, self._data, self._customID, old_value, self.rowCount()):
+                    self._data[index.row()][index.column()] = old_value
                 return True
             except ValueError:
                 return False
@@ -200,7 +188,7 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
 
     def _initModel(self):
         data = initTable1()
-        header = ['h, м', 't1, с', 't2, с', 't3, c',  't4, c', 't ср, c', 'Δt, с', 'Δh, м', 'm, кг', 'm0, кг']
+        header = ['h, м', 't₁, с', 't₂, с', 't₃, c',  't₄, c', '〈t〉, c', 'Δt, с', 'Δh, м', 'm, кг', 'm₀, кг']
         vheader = None
         customID = 1
         self.rowC = int(len(data))
@@ -285,7 +273,7 @@ class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
 
     def _initModel(self):
         data = initTable2()
-        header = ['m, кг', 'M, кг', 'M/m, кг', 't1, с', 't2, с', 't3, с', 't4, с', 't ср., с', 'Δt, с']
+        header = ['m, кг', 'M, кг', 'M/m', 't₁, с', 't₂, с', 't₃, c',  't₄, c', '〈t〉, с', 'Δt, с']
         vheader = None
         customID = 2
         self.rowC = int(len(data))
