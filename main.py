@@ -13,7 +13,7 @@ from os import listdir, path
 import MainWindow
 import Titul
 import Table_1
-import Table_2
+
 
 def raschotFunction(index, data, customID, old_value, rowC):
     if customID == 1 and index.column() < 2:
@@ -200,7 +200,7 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
 
     def _initModel(self):
         data = initTable1()
-        header = ['h, м', 't1, с', 't2, с', 't3, c',  't4, c', 'Δt, с', 'Δh, м', 'm, кг', 'm0, кг']
+        header = ['N', 't,с', 'w0, с^-1', 'H,м', 'r, м', 'v, м/с', 'J, кг*H^2' , 'Jср', 'Jтеор']
         vheader = None
         customID = 1
         self.rowC = int(len(data))
@@ -244,90 +244,6 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
         self.screen()
         self.close()
 
-def initTable2():
-    if os.path.exists('./data/table2.json'):
-        with open('./data/table2.json', 'r', encoding='utf-8') as read_file:
-            data = json.load(read_file)
-            _data = []
-            for row in data:
-                _col = []
-                for col in row:
-                    _col.append(row[col])
-                _data.append(_col)
-            return _data
-    else:
-        return [['', '', '', '', '', ''], ['', '', '', '', '', ''], ['', '', '', '', '', '']]
-
-def saveTable2(data, file='./data/table2.json'):
-    with open(file, 'w', encoding='utf-8') as write_file:
-        json.dump(data, write_file, ensure_ascii=False)
-
-class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
-
-    def __init__(self):
-        super().__init__()
-        self._initModel()
-        self.setupUi(self)
-        self._initGui()
-
-    def _initGui(self):
-        self.tableView2.setModel(self.model)
-        header = self.tableView2.horizontalHeader()
-        vheader = self.tableView2.verticalHeader()
-        header.ResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        header.setStretchLastSection(True)
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.tableView2.setHorizontalHeader(header)
-        self.tableView2.setVerticalHeader(vheader)
-        self.saveButton.clicked.connect(self.screen)
-        self.addRowButton.clicked.connect(self.addRow)
-        self.delRowButton.clicked.connect(self.delRow)
-
-    def _initModel(self):
-        data = initTable2()
-        header = ['m, кг', 'M/m, кг', 't1, с', 't2, с', 't3, с', 't4, с', 't сред.', 'Δt']
-        vheader = None
-        customID = 2
-        self.rowC = int(len(data))
-        self.model = TableModel(data, header, customID, vheader)
-
-    def addRow(self):
-        if int(self.rowC) < 6:
-            self.rowC = int(self.rowC) + 1
-            self.model.layoutAboutToBeChanged.emit()
-            self.model.insertRows(self.model.rowCount(), count=1)
-            self.model.layoutChanged.emit()
-        return None
-
-    def delRow(self):
-        self.model.layoutAboutToBeChanged.emit()
-        _index = self.tableView2.selectedIndexes()
-        if not _index:
-            return True
-        rows = sorted(set((index.row() for index in _index)))
-        self.model.removeRow(row=rows[0])
-        self.model.layoutChanged.emit()
-        self.rowC = int(self.rowC) - 1
-
-    def saveModel(self):
-        if not self.model._data:
-            return
-        _data = []
-        for _row in self.model._data:
-            _dict_task = {}
-            for i in range(len(self.model._header)):
-                _dict_task[self.model._header[i]] = _row[i]
-            _data.append(_dict_task)
-        saveTable2(_data, file='./data/table2.json')
-
-    def screen(self):
-        self.saveModel()
-        imageTabel = self.tableView2.grab(self.tableView2.rect())
-        imageTabel.save('./images/imageTabel2.png')
-
-    def closeEvent(self, event):
-        self.screen()
-        self.close()
 
 class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
 
@@ -375,7 +291,6 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
     def _initGui(self):
         self.metodButton.clicked.connect(self.openMetod)
         self.table1Button.clicked.connect(self.openTable1)
-        self.table2Button.clicked.connect(self.openTable2)
         self.titulButton.clicked.connect(self.openTitul)
         self.otchotButton.clicked.connect(self.saveOtchot)
     def openMetod(self):
@@ -415,20 +330,8 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         return dst
 
     def saveOtchot(self):
-        if path.isfile('./images/imageTabel1.png') and path.isfile('./images/imageTabel2.png'):
-            im2 = Image.open('./images/imageTabel2.png')
+        if path.isfile('./images/imageTabel1.png'):
 
-            Table2Header = Image.open('./images/Table2Header.png')
-
-            self.mergePng(Table2Header, im2, resize_big_image=True).save('./images/newIm.png')
-            newIm = Image.open('./images/newIm.png')
-
-            newIm = Image.open('./images/newIm.png')
-
-            newIm = Image.open('./images/newIm.png')
-            a4im = Image.new('RGB', (595, 842), (255, 255, 255))
-            a4im.paste(newIm, newIm.getbbox())
-            a4im.save('images/pdfFiles/32_tables.pdf', 'PDF', quality=100)
             Table1Header = Image.open('./images/Table1Header.png')
             im1 = Image.open('./images/imageTabel1.png')
             self.mergePng(Table1Header, im1, resize_big_image=True).save('./images/t1.png')

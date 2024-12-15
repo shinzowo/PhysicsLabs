@@ -35,14 +35,6 @@ class Ui_MainWindow(object):
         font.setBold(True)
         self.metodButton.setFont(font)
         self.metodButton.setObjectName('metodButton')
-        self.table2Button = QtWidgets.QPushButton(parent=self.centralwidget)
-        self.table2Button.setGeometry(QtCore.QRect(280, 190, 140, 60))
-        font = QtGui.QFont()
-        font.setFamily('Arial')
-        font.setPointSize(12)
-        font.setBold(True)
-        self.table2Button.setFont(font)
-        self.table2Button.setObjectName('table2Button')
         font = QtGui.QFont()
         font.setFamily('Arial')
         font.setPointSize(12)
@@ -68,7 +60,7 @@ class Ui_MainWindow(object):
         self.label_2.setScaledContents(True)
         self.label_2.setObjectName('label_2')
         self.table1Button = QtWidgets.QPushButton(parent=self.centralwidget)
-        self.table1Button.setGeometry(QtCore.QRect(120, 190, 140, 60))
+        self.table1Button.setGeometry(QtCore.QRect(120, 190, 300, 60))
         font = QtGui.QFont()
         font.setFamily('Arial')
         font.setPointSize(12)
@@ -81,11 +73,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate('MainWindow', 'Лабораторная работа № 1-03'))
+        MainWindow.setWindowTitle(_translate('MainWindow', 'Лабораторная работа № 1-12'))
         self.titulButton.setText(_translate('MainWindow', 'Редактирование титульного листа'))
-        self.label.setText(_translate('MainWindow', 'Лабораторная работа № 1-03'))
+        self.label.setText(_translate('MainWindow', 'Лабораторная работа № 1-12'))
         self.metodButton.setText(_translate('MainWindow', 'Методические указания'))
-        self.table2Button.setText(_translate('MainWindow', 'Таблица 2'))
+
         self.otchotButton.setText(_translate('MainWindow', 'Сохранить отчёт'))
         self.label_2.setText(_translate('MainWindow', '<html><head/><body><p align="center"><span style=" font-size:10pt;">ВНИМАНИЕ!</span></p><p align="center"><span style=" font-size:10pt;">Не забудьте сохранить внесённые данные перед</span></p><p align="center"><span style=" font-size:10pt;"> сохранением отчёта!</span></p></body></html>'))
         self.table1Button.setText(_translate('MainWindow', 'Таблица 1'))
