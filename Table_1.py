@@ -6,7 +6,7 @@ class Ui_Table_1(object):
         Table_1.setObjectName('Table_1')
         Table_1.resize(606, 401)
         self.tableView1 = QtWidgets.QTableView(parent=Table_1)
-        self.tableView1.setGeometry(QtCore.QRect(10, 10, 590, 200))
+        self.tableView1.setGeometry(QtCore.QRect(10, 10, 590, 250))
         self.tableView1.setMidLineWidth(2)
         self.tableView1.setObjectName('tableView1')
         self.tableView1.horizontalHeader().setCascadingSectionResizes(False)
