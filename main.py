@@ -14,6 +14,67 @@ import MainWindow
 import Titul
 import Table_1
 import Table_2
+import pyqtgraph as pg
+from pyqtgraph.exporters import ImageExporter
+import math
+
+
+def save_graph_to_png(x_data, y_data, file_path):
+    """Сохраняет график в PNG без отображения его в приложении."""
+    try:
+        # Создаем виджет макета для графиков
+        layout = pg.GraphicsLayoutWidget()
+        plot_item = layout.addPlot()  # Добавляем график в макет
+
+        # Построение графика
+        plot_item.plot(x_data, y_data, pen=pg.mkPen(color='b', width=2), symbol='o', symbolSize=10)
+        plot_item.setTitle("График данных")
+        plot_item.setLabel('left', 'Y')
+        plot_item.setLabel('bottom', 'X')
+        plot_item.titleLabel.setPos(0, 20)
+
+        # Увеличиваем отступы вокруг графика
+        #plot_item.setContentsMargins(20, 20, 20, 20)  # left, top, right, bottom
+
+        # Настраиваем видимую область
+        view_box = plot_item.getViewBox()
+        view_box.setAspectLocked(False)  # Разрешаем изменение масштаба
+        view_box.enableAutoRange()  # Автоматическое масштабирование
+
+        # Экспорт графика
+        exporter = ImageExporter(plot_item)
+        exporter.parameters()['width'] = 800  # Задаем ширину изображения (по желанию)
+        exporter.export(file_path)
+
+        print(f"График успешно сохранен в файл: {file_path}")
+    except Exception as e:
+        print(f"Ошибка при сохранении графика: {e}")
+
+def get_xy_data(data, xCol, header):
+    """Извлекает данные для x и y из таблицы."""
+
+    # Инициализация списков для x и y
+    x = []
+    y = []
+
+    # Получаем индексы столбцов
+    index_h = header.index(xCol)
+    index_t_avg = header.index('〈t〉, с')
+
+    # Обработка данных
+    for row in data:
+        try:
+            h = float(row[index_h])  # Получаем h
+            t_avg = float(row[index_t_avg])  # Получаем среднее время 〈t〉
+
+            y.append(t_avg)
+            x.append(math.sqrt(h))
+        except (ValueError, TypeError):
+            # Игнорируем некорректные строки
+            continue
+    x.append(0)
+    y.append(0)
+    return x, y
 
 def raschotFunction(index, data, customID, old_value, rowC):
     if customID == 1:
@@ -188,7 +249,7 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
 
     def _initModel(self):
         data = initTable1()
-        header = ['h, м', 't₁, с', 't₂, с', 't₃, c',  't₄, c', '〈t〉, c', 'Δt, с', 'Δh, м', 'm, кг', 'm₀, кг']
+        header = ['h, м', 't₁, с', 't₂, с', 't₃, c',  't₄, c', '〈t〉, с', 'Δt, с', 'Δh, м', 'm, кг', 'm₀, кг']
         vheader = None
         customID = 1
         self.rowC = int(len(data))
@@ -231,6 +292,11 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
     def closeEvent(self, event):
         self.screen()
         self.close()
+    def get_data(self):
+        """Возвращает текущие данные таблицы."""
+        return self.model._data
+    def get_header(self):
+        return self.model._header
 
 def initTable2():
     if os.path.exists('./data/table2.json'):
@@ -316,6 +382,11 @@ class Table2(QtWidgets.QMainWindow, Table_2.Ui_Table_2):
     def closeEvent(self, event):
         self.screen()
         self.close()
+    def get_data(self):
+        """Возвращает текущие данные таблицы."""
+        return self.model._data
+    def get_header(self):
+        return self.model._header
 
 class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
 
@@ -404,14 +475,12 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
 
     def saveOtchot(self):
         if path.isfile('./images/imageTabel1.png') and path.isfile('./images/imageTabel2.png'):
+
             im2 = Image.open('./images/imageTabel2.png')
 
             Table2Header = Image.open('./images/Table2Header.png')
 
             self.mergePng(Table2Header, im2, resize_big_image=True).save('./images/newIm.png')
-            newIm = Image.open('./images/newIm.png')
-
-            newIm = Image.open('./images/newIm.png')
 
             newIm = Image.open('./images/newIm.png')
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
@@ -424,12 +493,54 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             a4im.paste(t1, t1.getbbox())
             a4im.save('images/pdfFiles/31_tables.pdf', 'PDF', quality=100)
+            # Создаем графики из двух таблиц в формат png
+            if (self.table1 == None):
+                self.table1 = Table1()
+            data = self.table1.get_data()
+            x, y = get_xy_data(data, 'h, м', self.table1.get_header())
+            save_graph_to_png(x, y, './images/graph1.png')
+            if(self.table2 == None):
+                self.table2=Table2()
+            data = self.table2.get_data()
+            x, y = get_xy_data(data, 'M/m', self.table2.get_header())
+            save_graph_to_png(x, y, './images/graph2.png')
+
+            graph=Image.open('./images/graph1.png')
+            graph.thumbnail((400, 400))
+            a4im = Image.new('RGB', (595, 842), (255, 255, 255))
+            # Получаем размеры изображения и листа
+            graph_width, graph_height = graph.size
+            a4_width, a4_height = a4im.size
+
+            # Рассчитываем координаты для центрирования изображения
+            x = (a4_width - graph_width) // 2  # Центр по горизонтали
+            y = 20  # Центр по вертикали
+
+            # Вставляем изображение в центр листа A4
+            a4im.paste(graph, (x, y))
+            a4im.save('images/pdfFiles/41_graph.pdf', 'PDF', quality=100)
+
+            graph = Image.open('./images/graph2.png')
+            graph.thumbnail((400, 400))
+            a4im = Image.new('RGB', (595, 842), (255, 255, 255))
+            # Получаем размеры изображения и листа
+            graph_width, graph_height = graph.size
+            a4_width, a4_height = a4im.size
+
+            # Рассчитываем координаты для центрирования изображения
+            x = (a4_width - graph_width) // 2  # Центр по горизонтали
+            y = 20  # Центр по вертикали
+
+            # Вставляем изображение в центр листа A4
+            a4im.paste(graph, (x, y))
+            a4im.save('images/pdfFiles/42_graph.pdf', 'PDF', quality=100)
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
         for file in files:
             merger.append('./images/pdfFiles/' + file)
         with open(path.abspath('./otchot/otchot.pdf'), 'wb') as append_all_pdfs:
             merger.write(append_all_pdfs)
+
     def closeEvent(self, event):
         if self.table1 and self.table1.isVisible():
             self.table1.closeEvent(None)
