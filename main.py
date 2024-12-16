@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QModelIndex
 from PyQt6.QtPdf import QPdfDocument
 from PyQt6.QtPdfWidgets import QPdfView
 import PyPDF2
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from os import listdir, path
 import MainWindow
 import Titul
@@ -17,6 +17,8 @@ import Table_2
 import pyqtgraph as pg
 from pyqtgraph.exporters import ImageExporter
 import math
+import numpy as np
+
 
 
 def save_graph_to_png(x_data, y_data, file_path):
@@ -50,6 +52,23 @@ def save_graph_to_png(x_data, y_data, file_path):
     except Exception as e:
         print(f"Ошибка при сохранении графика: {e}")
 
+def save_formula_to_png(a, b, file_path):
+    formula=''
+    if(b>0):
+        formula=f"y ={a:.2f}x + {b:.2f}"
+    else:
+        formula = f"y ={a:.2f}x - {abs(b):.2f}"
+    width, height = 100, 100
+    image=Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+    text_bbox = draw.textbbox((0, 0), formula, font=font)
+    text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+    text_x = (width - text_width) // 2
+    text_y = (height - text_height) // 2
+    draw.text((text_x, text_y), formula, fill="black", font=font)
+
+    image.save(file_path)
 def get_xy_data(data, xCol, header):
     """Извлекает данные для x и y из таблицы."""
 
@@ -498,14 +517,21 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
                 self.table1 = Table1()
             data = self.table1.get_data()
             x, y = get_xy_data(data, 'h, м', self.table1.get_header())
+            coefficients=np.polyfit(x, y, 1)
+            a,b=coefficients
+            save_formula_to_png(a, b, './images/formula1.png')
             save_graph_to_png(x, y, './images/graph1.png')
             if(self.table2 == None):
                 self.table2=Table2()
             data = self.table2.get_data()
             x, y = get_xy_data(data, 'M/m', self.table2.get_header())
+            coefficients = np.polyfit(x, y, 1)
+            a, b = coefficients
+            save_formula_to_png(a, b, './images/formula2.png')
             save_graph_to_png(x, y, './images/graph2.png')
 
             graph=Image.open('./images/graph1.png')
+            formula=Image.open('./images/formula1.png')
             graph.thumbnail((400, 400))
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             # Получаем размеры изображения и листа
@@ -517,10 +543,12 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             y = 20  # Центр по вертикали
 
             # Вставляем изображение в центр листа A4
-            a4im.paste(graph, (x, y))
+            a4im.paste(formula, (x, y))
+            a4im.paste(graph, (x, y+100))
             a4im.save('images/pdfFiles/41_graph.pdf', 'PDF', quality=100)
 
             graph = Image.open('./images/graph2.png')
+            formula = Image.open('./images/formula2.png')
             graph.thumbnail((400, 400))
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             # Получаем размеры изображения и листа
@@ -532,7 +560,8 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             y = 20  # Центр по вертикали
 
             # Вставляем изображение в центр листа A4
-            a4im.paste(graph, (x, y))
+            a4im.paste(formula, (x, y))
+            a4im.paste(graph, (x, y+100))
             a4im.save('images/pdfFiles/42_graph.pdf', 'PDF', quality=100)
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
