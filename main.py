@@ -281,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         return dst
 
     def saveOtchot(self):
-        if path.isfile('./images/imageTabel1.png') and path.isfile('./images/imageTabel2.png'):
+        if path.isfile('./images/imageTabel1.png'):
             #im2 = Image.open('./images/imageTabel2.png')
 
             #Table2Header = Image.open('./images/Table2Header.png')
