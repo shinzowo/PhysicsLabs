@@ -8,13 +8,125 @@ from PyQt6.QtCore import Qt, QModelIndex
 from PyQt6.QtPdf import QPdfDocument
 from PyQt6.QtPdfWidgets import QPdfView
 import PyPDF2
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from os import listdir, path
 import MainWindow
 import Titul
 import Table_1
+import pyqtgraph as pg
+from pyqtgraph.exporters import ImageExporter
+import math
+import numpy as np
 
+def save_graph_to_png(x_data, y_data, file_path_formula, file_path_graph):
+    coefficients = np.polyfit(x_data, y_data, 1)
+    a, b = coefficients
+    save_formula_to_png(a, b, file_path_formula)
+    layout = pg.GraphicsLayoutWidget()
 
+    # Добавляем график в макет
+    layout.setBackground('w')
+    plot_item = layout.addPlot()
+
+    # Построение графика линейной функции y = ax + b
+    x_line = np.linspace(0, 0.06, 100)  # Генерация значений x для графика линии
+    y_line = a * x_line + b  # Преобразуем x в y по уравнению прямой
+
+    # Добавляем линию (график линейной функции)
+    plot_item.plot(x_line, y_line, pen=pg.mkPen(color='b', width=2), name="Линейная функция")
+
+    # Добавляем точки из x_data, y_data
+    plot_item.plot(x_data, y_data, pen=None, symbol='o', symbolSize=10, symbolBrush='r', name="Точки")
+
+    # Настроим график
+    plot_item.setTitle("График линейной функции с точками")
+    plot_item.setLabel('left', 'Y')
+    plot_item.setLabel('bottom', 'X')
+
+    # Экспорт графика в изображение
+    exporter = ImageExporter(plot_item)
+    exporter.parameters()['width'] = 600  # Задаем ширину изображения (по желанию)
+    exporter.export(file_path_graph)  # Сохраняем изображение по указанному пути
+    return a, b
+def save_formula_to_png(a, b, file_path):
+    formula=''
+    if(b>0):
+        formula=f"y = {a:.2f}x + {b:.2f}"
+    else:
+        formula = f"y = {a:.2f}x - {abs(b):.2f}"
+    width, height = 100, 100
+    image=Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+    text_bbox = draw.textbbox((0, 0), formula, font=font)
+    text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+    text_x = (width - text_width) // 2
+    text_y = (height - text_height) // 2
+    draw.text((text_x, text_y), formula, fill="black", font=font)
+
+    image.save(file_path)
+def get_xy_data(data, xRow, yRow):
+    #Извлекаем данные для x и y из таблицы
+    x=[i for i in data[xRow] if i]
+    y=[i for i in data[yRow] if i]
+    y=y[1:]
+    #Индексы строк
+    return x, y
+def save_calculation_J00(data, a, b):
+    #формула j00=T0^2/(T1^2-T0^2)*(2/5*m*r^2+m*l^2) m=0.18 r=0.023
+    m=0.18
+    r=0.023
+    l=data[0][7]
+    T0=data[3][0]
+    T1=data[3][1]
+    coefT=T0/(T1-T0)
+    j00_tb = coefT*(2/5*m*r**2+m*l**2)
+    #по график (2/5*m*r^2+J00)*4*pi^2/k
+    kap=4*math.pi**2*m/a #модуль кручения подвеса
+    j00_graph=b*kap/(4*math.pi**2)-2/5*m*r**2
+    inaccuracy=100-j00_graph/j00_tb*100
+    # Создание изображения для PDF
+    img_width, img_height = 595, 842
+    image = Image.new('RGB', (595, 842), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+
+    # Шрифты
+    try:
+        font_title = ImageFont.truetype("arial.ttf", 20)
+        font_text = ImageFont.truetype("arial.ttf", 14)
+    except IOError:
+        font_title = ImageFont.load_default()
+        font_text = ImageFont.load_default()
+
+    # Заголовок
+    draw.text((20, 20), "Вычисления", fill="black", font=font_title)
+
+    # Основной текст
+    y = 60
+    line_spacing = 20
+    text_lines = [
+        f"Исходные данные:",
+        f"Масса (m): {m} кг",
+        f"Радиус (r): {r} м",
+        f"Расстояние (l): {l} м",
+        f"Период T0^2: {T0} ",
+        f"Период T1^2: {T1} ",
+        f"Коэффициент T (T0^2/(T1^2-T0^2)): {coefT:.5f}",
+        "",
+        f"Рассчитанные значения:",
+        f"j00 по формуле (9): {j00_tb:.5f}",
+        f"Модуль кручения (k): {kap:.5f}",
+        f"j00 по графику: {j00_graph:.5f}",
+        f"Погрешность (inaccuracy): {inaccuracy:.2f}%",
+    ]
+
+    for line in text_lines:
+        draw.text((20, y), line, fill="black", font=font_text)
+        y += line_spacing
+
+    # Сохранение как PDF
+    image.save("./images/pdfFiles/51_calc.pdf", "PDF", resolution=100.0)
+    return
 def raschotFunction(index, data, customID, old_value, rowC):
     if index.row() in (3, 4):
         data[index.row()][index.column()] = old_value
@@ -27,7 +139,7 @@ def raschotFunction(index, data, customID, old_value, rowC):
     elif index.row() == 0 and index.column() in (7, 8):
         try:
             for i in range(1, 7):
-                data[4][i] = data[0][7] + (i-1) * data[0][8]
+                data[4][i] = (data[0][7] - (i-1) * data[0][8])**2
         except TypeError:
             return False
     else:
@@ -194,6 +306,11 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
     def closeEvent(self, event):
         self.screen()
         self.close()
+    def get_data(self):
+        """Возвращает текущие данные таблицы."""
+        return self.model._data
+    def get_header(self):
+        return self.model._header
 
 class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
 
@@ -282,19 +399,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
 
     def saveOtchot(self):
         if path.isfile('./images/imageTabel1.png'):
-            #im2 = Image.open('./images/imageTabel2.png')
 
-            #Table2Header = Image.open('./images/Table2Header.png')
-
-            #self.mergePng(Table2Header, im2, resize_big_image=True).save('./images/newIm.png')
-            #newIm = Image.open('./images/newIm.png')
-
-            #newIm = Image.open('./images/newIm.png')
-
-            #newIm = Image.open('./images/newIm.png')
-            #a4im = Image.new('RGB', (595, 842), (255, 255, 255))
-            #a4im.paste(newIm, newIm.getbbox())
-            #a4im.save('images/pdfFiles/32_tables.pdf', 'PDF', quality=100)
             Table1Header = Image.open('./images/Table1Header.png')
             im1 = Image.open('./images/imageTabel1.png')
             self.mergePng(Table1Header, im1, resize_big_image=True).save('./images/t1.png')
@@ -302,6 +407,26 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             a4im.paste(t1, t1.getbbox())
             a4im.save('images/pdfFiles/31_tables.pdf', 'PDF', quality=100)
+
+            #создаем график из таблицы в формат png
+            if(self.table1==None):
+                self.table1=Table1()
+            data=self.table1.get_data()
+            x, y = get_xy_data(data, 4, 3)
+            a, b = save_graph_to_png(x, y, './images/formula1.png','./images/graph1.png')
+            formula = Image.open('./images/formula1.png')
+            graph = Image.open('./images/graph1.png')
+            a4im = Image.new('RGB', (595, 842), (255, 255, 255))
+            graph_width, graph_height = graph.size
+            a4_width, a4_height = a4im.size
+            x = (a4_width - graph_width) // 2  # Центр по горизонтали
+            y = 20  # Центр по вертикали
+            # Вставляем изображение в центр листа A4
+            a4im.paste(formula, (x+250, y))
+            a4im.paste(graph, (x, y + 150))
+            a4im.save('images/pdfFiles/41_graph.pdf', 'PDF', quality=100)
+            #считаем j00
+            save_calculation_J00(self.table1.get_data(), a, b)
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
         for file in files:
