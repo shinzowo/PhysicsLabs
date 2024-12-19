@@ -16,80 +16,19 @@ import Table_1
 
 
 def raschotFunction(index, data, customID, old_value, rowC):
-    if customID == 1 and index.column() < 2:
-        try:
-            a = float(data[index.row()][0])
-            b = float(data[index.row()][1])
-            if not a + b:
-                data[index.row()][2] = 'Деление на ноль'
-            else:
-                f = a * b / (a + b)
-                data[index.row()][2] = f
-        except ValueError:
-            data[index.row()][2] = ''
-            return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][2] != '' and data[i][2] != 'Деление на ноль':
-                n += 1
-                s += data[i][2]
-        data[0][3] = s / n
-    elif customID == 2 and index.column() < 3:
-        if index.column() == 1 or index.column() == 2:
-            try:
-                a1 = float(data[index.row()][1])
-                a2 = float(data[index.row()][2])
-                data[index.row()][3] = a2 - a1
-            except ValueError:
-                data[index.row()][3] = ''
-                return False
-        try:
-            l = float(data[index.row()][3])
-            L = float(data[index.row()][0])
-            if int(L) == 0:
-                data[index.row()][4] = 'Деление на ноль'
-            else:
-                f = (L * L - l * l) / (4 * L)
-                data[index.row()][4] = f
-        except ValueError:
-            data[index.row()][4] = ''
-            return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][4] != '' and data[i][4] != 'Деление на ноль':
-                n += 1
-                s += data[i][4]
-        data[0][5] = s / n
-    elif customID == 3 and index.column() < 3:
-        try:
-            x1 = float(data[index.row()][0])
-            x2 = float(data[index.row()][1])
-            xp = float(data[index.row()][2])
-            a = x2 - xp
-            b = x1 - xp
-            if a == b:
-                data[index.row()][5] = 'Деление на ноль'
-                return False
-            data[index.row()][3] = a
-            data[index.row()][4] = b
-            f = a * b / (b - a)
-            data[index.row()][5] = f
-        except ValueError:
-            for i in range(3, 5):
-                data[index.row()][i] = ''
-            return False
-        n = 0
-        s = 0
-        for i in range(rowC):
-            if data[i][5] != '' and data[i][5] != 'Деление на ноль':
-                n += 1
-                s += data[i][5]
-        data[0][6] = s / n
-    else:
+    if (index.row() != 0 and index.column() in (7, 8)) or index.column() == 7:
         data[index.row()][index.column()] = old_value
-    return False
+    
+    try:
+        jsum = 0
+        for i in range(rowC):
+            jsum += data[i][6]
+
+        data[0][7] = jsum/rowC
+    except TypeError:
+        return False
+
+    return True
 
 class TableModel(QtCore.QAbstractTableModel):
 
