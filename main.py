@@ -158,6 +158,67 @@ def raschotFunction(index, data, customID, old_value, rowC):
         data[index.row()][index.column()] = old_value
     return True
 
+def save_calculation_g(data1, data2, a1, b1, a2, b2):
+    sqr_h=[]
+    t_av=[]
+    for row in data1:
+        sqr_h.append(math.sqrt(row[0]))
+    for row in data1:
+        t_av.append(row[5])
+    delta_h=abs(sqr_h[0]-sqr_h[1])
+    delta_t=abs(t_av[0]-t_av[1])
+    a=2/(delta_t/delta_h)**2 # находим a через график 1
+    # график 2
+    sqr_Mm=[]
+    t_av_tb2=[]
+    for row in data2:
+        sqr_Mm.append(math.sqrt(row[2]))
+    for row in data2:
+        t_av_tb2.append(row[7])
+    delta_t2=[]
+    delta_sqr_Mm=[]
+    for i in range(len(t_av_tb2)-1):
+        delta_t2.append(t_av_tb2[i]-t_av_tb2[i+1])
+    for i in range(len(sqr_Mm)-1):
+        delta_sqr_Mm.append(sqr_Mm[i]-sqr_Mm[i+1])
+    g_arr=[]
+    for i in range(len(delta_sqr_Mm)):
+        g=4*data1[0][0]/(delta_t2[i]/delta_sqr_Mm[i])**2
+        g_arr.append(g)
+    g_av=sum(g_arr)/len(g_arr)
+    g_graph=4*data1[0][0]/(a2)**2
+    inaccuracy=abs(100-9.80665/g_graph*100)
+    # Создаем изображение для PDF
+    img_width, img_height=595, 842
+    image = Image.new('RGB', (595, 842), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    #Шрифты
+    try:
+        font_title = ImageFont.truetype("arial.ttf", 20)
+        font_text = ImageFont.truetype("arial.ttf", 14)
+    except IOError:
+        font_title = ImageFont.load_default()
+        font_text = ImageFont.load_default()
+
+        # Заголовок
+    draw.text((20, 20), "Вычисления", fill="black", font=font_title)
+
+    # Основной текст
+    y = 60
+    line_spacing = 20
+    text_lines = [
+        f"Определение a по наклону{a}",
+        f"Нахождения g средней по формуле 11: {g_av}",
+        f"Нахождения g по графику 11: {g_graph}",
+        f"Погрешность: {inaccuracy}%",
+    ]
+
+    for line in text_lines:
+        draw.text((20, y), line, fill="black", font=font_text)
+        y += line_spacing
+
+    # Сохранение как PDF
+    image.save("./images/pdfFiles/51_calc.pdf", "PDF", resolution=100.0)
 class TableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, data=None, header=None, customID=None, vheader=None):
@@ -519,6 +580,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             x, y = get_xy_data(data, 'h, м', self.table1.get_header())
             coefficients=np.polyfit(x, y, 1)
             a,b=coefficients
+            a1, b1 = a, b
             save_formula_to_png(a, b, './images/formula1.png')
             save_graph_to_png(x, y, './images/graph1.png')
             if(self.table2 == None):
@@ -527,6 +589,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             x, y = get_xy_data(data, 'M/m', self.table2.get_header())
             coefficients = np.polyfit(x, y, 1)
             a, b = coefficients
+            a2, b2 = a, b
             save_formula_to_png(a, b, './images/formula2.png')
             save_graph_to_png(x, y, './images/graph2.png')
 
@@ -563,6 +626,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             a4im.paste(formula, (x, y))
             a4im.paste(graph, (x, y+100))
             a4im.save('images/pdfFiles/42_graph.pdf', 'PDF', quality=100)
+            save_calculation_g(self.table1.get_data(), self.table2.get_data(), a1, b1, a2, b2)
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
         for file in files:
