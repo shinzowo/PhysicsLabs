@@ -328,7 +328,7 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             if(self.table1==None):
                 self.table1=Table1()
             data=self.table1.get_data()
-            write_j_theor(data[0][8])
+            write_j_theor(data[0][7])
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
         for file in files:
