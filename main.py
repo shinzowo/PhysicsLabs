@@ -8,22 +8,68 @@ from PyQt6.QtCore import Qt, QModelIndex
 from PyQt6.QtPdf import QPdfDocument
 from PyQt6.QtPdfWidgets import QPdfView
 import PyPDF2
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from os import listdir, path
 import MainWindow
 import Titul
 import Table_1
+import math
 
-
-def raschotFunction(index, data, customID, old_value, rowC):
-    if (index.row() != 0 and index.column() in (7, 8)) or index.column() == 7:
-        data[index.row()][index.column()] = old_value
-    
+def write_j_theor(J_applied):
+    inaccuracy=abs(100-(0.001671/J_applied*100))
+    # Создаем изображение для PDF
+    img_width, img_height = 595, 842
+    image = Image.new('RGB', (595, 842), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    # Шрифты
     try:
+        font_title = ImageFont.truetype("arial.ttf", 20)
+        font_text = ImageFont.truetype("arial.ttf", 14)
+    except IOError:
+        font_title = ImageFont.load_default()
+        font_text = ImageFont.load_default()
+
+        # Заголовок
+    draw.text((20, 20), "Вычисления", fill="black", font=font_title)
+
+    # Основной текст
+    y = 60
+    line_spacing = 20
+    text_lines = [
+        f"J пластины: 2*m*r^2 = 0,000192",
+        f"J стержня: m*l^2/12 = 0,001479",
+        f"J теор.: J пластины + J стержня = 0,001671",
+        f"J = {J_applied}",
+        f"Погрешность = {inaccuracy}%",
+    ]
+
+    for line in text_lines:
+        draw.text((20, y), line, fill="black", font=font_text)
+        y += line_spacing
+
+    # Сохранение как PDF
+    image.save("./images/pdfFiles/51_calc.pdf", "PDF", resolution=100.0)
+    return
+def raschotFunction(index, data, customID, old_value, rowC):
+    if index.column() in (2, 5, 6, 7, 8):
+        data[index.row()][index.column()] = old_value
+    if data[0][8]=="":
+        data[0][8]=0.001670699
+    try:
+        m0=0.045 #масса шарика
         jsum = 0
         for i in range(rowC):
+            N=data[i][0]
+            t=data[i][1]
+            w0=4*math.pi*N/t
+            H=data[i][3]
+            r=data[i][4]
+            v=(2*9.81*H)**(1/2)
+            j=m0*r/w0*(2*v-w0*r)
+            data[i][2]=w0 #w0
+            data[i][5]=v#v
+            data[i][6]=j #j
             jsum += data[i][6]
-
         data[0][7] = jsum/rowC
     except TypeError:
         return False
@@ -134,8 +180,8 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
         self.tableView1.setHorizontalHeader(header)
         self.tableView1.setVerticalHeader(vheader)
         self.saveButton.clicked.connect(self.screen)
-        self.addRowButton.clicked.connect(self.addRow)
-        self.delRowButton.clicked.connect(self.delRow)
+        #self.addRowButton.clicked.connect(self.addRow)
+        #self.delRowButton.clicked.connect(self.delRow)
 
     def _initModel(self):
         data = initTable1()
@@ -182,6 +228,8 @@ class Table1(QtWidgets.QMainWindow, Table_1.Ui_Table_1):
     def closeEvent(self, event):
         self.screen()
         self.close()
+    def get_data(self):
+        return self.model._data
 
 
 class TitulWindow(QtWidgets.QMainWindow, Titul.Ui_Titul):
@@ -270,7 +318,6 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
 
     def saveOtchot(self):
         if path.isfile('./images/imageTabel1.png'):
-
             Table1Header = Image.open('./images/Table1Header.png')
             im1 = Image.open('./images/imageTabel1.png')
             self.mergePng(Table1Header, im1, resize_big_image=True).save('./images/t1.png')
@@ -278,6 +325,10 @@ class MainWindow(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
             a4im = Image.new('RGB', (595, 842), (255, 255, 255))
             a4im.paste(t1, t1.getbbox())
             a4im.save('images/pdfFiles/31_tables.pdf', 'PDF', quality=100)
+            if(self.table1==None):
+                self.table1=Table1()
+            data=self.table1.get_data()
+            write_j_theor(data[0][8])
         merger = PyPDF2.PdfMerger()
         files = [f for f in listdir('./images/pdfFiles/') if path.isfile('./images/pdfFiles/' + f) and f.endswith('.pdf')]
         for file in files:
