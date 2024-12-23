@@ -48,8 +48,9 @@ def write_j_theor(J_applied):
         y += line_spacing
 
     # Сохранение как PDF
-    image.save("./images/pdfFiles/51_calc.pdf", "PDF", resolution=100.0)
+    image.save("./images/pdfFiles/51_calc.pdf", "PDF", quality=100)
     return
+    
 def raschotFunction(index, data, customID, old_value, rowC):
     if index.column() in (2, 5, 6, 7, 8):
         data[index.row()][index.column()] = old_value
